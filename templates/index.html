@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Citas Médicas — FET 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2436;
+    --border: #1e2d45;
+    --accent: #00d4aa;
+    --accent2: #0ea5e9;
+    --accent3: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,212,170,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(14,165,233,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    background: rgba(10,15,30,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo span { color: var(--text); }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .header-badge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.25);
+    border-radius: 20px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.03em;
+  }
+  .page-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 36px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1; min-width: 120px;
+    padding: 10px 16px;
+    border: none; cursor: pointer;
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+  .tab-btn.active {
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(14,165,233,0.1));
+    color: var(--accent);
+    border: 1px solid rgba(0,212,170,0.2);
+    font-weight: 600;
+  }
+
+  /* ── PANEL ── */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text);
+  }
+  .card-title .icon { font-size: 1.1rem; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
+  }
+  select option { background: var(--surface2); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 11px 24px;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #00b894);
+    color: #0a0f1e;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,212,170,0.3); }
+
+  .btn-danger {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+  .btn-warning {
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: #fbbf24;
+  }
+  .btn-warning:hover { background: rgba(245,158,11,0.25); }
+
+  .btn-sm { padding: 7px 14px; font-size: 0.8rem; border-radius: 8px; }
+
+  /* ── ALERT ── */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .alert.show { display: flex; align-items: center; gap: 8px; }
+  .alert-success { background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.25); color: var(--accent); }
+  .alert-error   { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+  .alert-info    { background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.25); color: #38bdf8; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--surface2); }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  td { padding: 13px 16px; font-size: 0.85rem; border-top: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .badge-active     { background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.2); }
+  .badge-cancelled  { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .badge-reprogrammed { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+
+  .empty-state {
+    text-align: center; padding: 48px 20px;
+    color: var(--text-muted); font-size: 0.9rem;
+  }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.s1::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card.s2::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .stat-card.s3::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; line-height: 1; }
+  .stat-card.s1 .stat-value { color: var(--accent); }
+  .stat-card.s2 .stat-value { color: var(--accent2); }
+  .stat-card.s3 .stat-value { color: var(--accent3); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%; max-width: 460px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .tabs { flex-direction: column; }
+    .tab-btn { min-width: unset; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    MediCitas
+  </div>
+</header>
+
+<div class="container">
+  <div class="page-title">Gestión de Citas Médicas</div>
+  <div class="page-subtitle">Administra pacientes, médicos y citas en un solo lugar.</div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card s1">
+      <div class="stat-label">Pacientes</div>
+      <div class="stat-value" id="stat-pacientes">0</div>
+    </div>
+    <div class="stat-card s2">
+      <div class="stat-label">Citas activas</div>
+      <div class="stat-value" id="stat-activas">0</div>
+    </div>
+    <div class="stat-card s3">
+      <div class="stat-label">Total citas</div>
+      <div class="stat-value" id="stat-total">0</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pacientes')">👤 Pacientes</button>
+    <button class="tab-btn" onclick="switchTab('citas')">📅 Asignar Cita</button>
+    <button class="tab-btn" onclick="switchTab('historial')">📋 Historial</button>
+    <button class="tab-btn" onclick="switchTab('todas')">🗂 Todas las Citas</button>
+    <button class="tab-btn" onclick="switchTab('medicos')">🩺 Médicos</button>
+  </div>
+
+  <!-- ── PANEL: PACIENTES ── -->
+  <div class="panel active" id="panel-pacientes">
+    <div class="card">
+      <div class="card-title"><span class="icon">👤</span> Registrar Nuevo Paciente</div>
+      <div id="alert-paciente" class="alert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" id="p-nombre" placeholder="Ej. Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label>Número de Documento</label>
+          <input type="text" id="p-documento" placeholder="CC / TI / Pasaporte">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="p-telefono" placeholder="300 000 0000">
+        </div>
+      </div>
+      <br>
+      <button class="btn btn-primary" onclick="registrarPaciente()">➕ Registrar Paciente</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> Pacientes Registrados</div>
+      <div class="table-wrap">
+        <table id="tabla-pacientes">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Documento</th><th>Teléfono</th></tr></thead>
+          <tbody id="tbody-pacientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: ASIGNAR CITA ── -->
+  <div class="panel" id="panel-citas">
+    <div class="card">
+      <div class="card-title"><span class="icon">📅</span> Asignar Nueva Cita</div>
+      <div id="alert-cita" class="alert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Paciente</label>
+          <select id="c-paciente"></select>
+        </div>
+        <div class="form-group">
+          <label>Especialidad</label>
+          <select id="c-especialidad" onchange="filtrarMedicos()"></select>
+        </div>
+        <div class="form-group">
+          <label>Médico</label>
+          <select id="c-medico"></select>
+        </div>
+        <div class="form-group">
+          <label>Fecha de la Cita</label>
+          <input type="date" id="c-fecha">
+        </div>
+      </div>
+      <br>
+      <button class="btn btn-primary" onclick="asignarCita()">📅 Asignar Cita</button>
+    </div>
+  </div>
+
+  <!-- ── PANEL: HISTORIAL ── -->
+  <div class="panel" id="panel-historial">
+    <div class="card">
+      <div class="card-title"><span class="icon">🔍</span> Buscar Historial de Paciente</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seleccionar Paciente</label>
+          <select id="h-paciente" onchange="verHistorial()"></select>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="card-historial" style="display:none">
+      <div class="card-title"><span class="icon">📋</span> Citas del Paciente</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Médico</th><th>Especialidad</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody id="tbody-historial"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: TODAS LAS CITAS ── -->
+  <div class="panel" id="panel-todas">
+    <div class="card">
+      <div class="card-title"><span class="icon">🗂</span> Todas las Citas</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Paciente</th><th>Médico</th><th>Especialidad</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tbody-todas"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: MÉDICOS ── -->
+  <div class="panel" id="panel-medicos">
+    <div class="card">
+      <div class="card-title"><span class="icon">🩺</span> Médicos Disponibles</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Especialidad</th><th>Descripción</th></tr></thead>
+          <tbody id="tbody-medicos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL REPROGRAMAR ── -->
+<div class="modal-overlay" id="modal-reprogram">
+  <div class="modal">
+    <div class="modal-title">📅 Reprogramar Cita</div>
+    <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:16px;" id="modal-cita-info"></p>
+    <div class="form-group">
+      <label>Nueva Fecha</label>
+      <input type="date" id="modal-nueva-fecha">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmarReprogramar()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATOS ──
+const state = {
+  especialidades: [
+    { id: 1, nombre: "Psiquiatría del Sueño", descripcion: "Atiende a quienes pueden dormir todo el día y les falta todavía" },
+    { id: 2, nombre: "Therianthropía y Conocimiento del Ser", descripcion: "Atención psicológica y adoctrinamiento" },
+    { id: 3, nombre: "Descoordinación Aguda", descripcion: "Terapia Intensiva para Ranked" }
+  ],
+  medicos: [
+    { id: 1, nombre: "Kevin Villa",   especialidadId: 1 },
+    { id: 2, nombre: "Harold Lopez",  especialidadId: 2 },
+    { id: 3, nombre: "Laura Agredo",  especialidadId: 3 }
+  ],
+  pacientes: [],
+  citas: [],
+  contadores: { pacientes: 1, citas: 1 },
+  citaSeleccionada: null
+};
+
+// ── UTILS ──
+function getEsp(id) { return state.especialidades.find(e => e.id === id); }
+function getMed(id) { return state.medicos.find(m => m.id === id); }
+function getPac(id) { return state.pacientes.find(p => p.id === id); }
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} show`;
+  el.innerHTML = (type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️') + ' ' + msg;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function badgeEstado(e) {
+  if (e === 'Activa')       return `<span class="badge badge-active">Activa</span>`;
+  if (e === 'Cancelada')    return `<span class="badge badge-cancelled">Cancelada</span>`;
+  if (e === 'Reprogramada') return `<span class="badge badge-reprogrammed">Reprogramada</span>`;
+  return e;
+}
+
+function updateStats() {
+  document.getElementById('stat-pacientes').textContent = state.pacientes.length;
+  document.getElementById('stat-activas').textContent   = state.citas.filter(c => c.estado === 'Activa').length;
+  document.getElementById('stat-total').textContent     = state.citas.length;
+}
+
+function emptyRow(cols, msg) {
+  return `<tr><td colspan="${cols}"><div class="empty-state"><div class="empty-icon">📭</div>${msg}</div></td></tr>`;
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (name === 'citas')     rellenarSelectsCita();
+  if (name === 'historial') rellenarSelectHistorial();
+  if (name === 'todas')     renderTodasCitas();
+  if (name === 'medicos')   renderMedicos();
+}
+
+// ── PACIENTES ──
+function registrarPaciente() {
+  const nombre    = document.getElementById('p-nombre').value.trim();
+  const documento = document.getElementById('p-documento').value.trim();
+  const telefono  = document.getElementById('p-telefono').value.trim();
+
+  if (!nombre || !documento || !telefono) return showAlert('alert-paciente','Todos los campos son obligatorios.','error');
+  if (state.pacientes.find(p => p.documento === documento))
+    return showAlert('alert-paciente', `Ya existe un paciente con el documento ${documento}.`, 'error');
+
+  const p = { id: state.contadores.pacientes++, nombre, documento, telefono };
+  state.pacientes.push(p);
+  showAlert('alert-paciente', `Paciente "${nombre}" registrado con ID ${p.id}.`, 'success');
+  ['p-nombre','p-documento','p-telefono'].forEach(id => document.getElementById(id).value = '');
+  renderPacientes();
+  updateStats();
+}
+
+function renderPacientes() {
+  const tbody = document.getElementById('tbody-pacientes');
+  if (!state.pacientes.length) { tbody.innerHTML = emptyRow(4, 'No hay pacientes registrados.'); return; }
+  tbody.innerHTML = state.pacientes.map(p =>
+    `<tr><td>${p.id}</td><td>${p.nombre}</td><td>${p.documento}</td><td>${p.telefono}</td></tr>`
+  ).join('');
+}
+
+// ── SELECTS CITA ──
+function rellenarSelectsCita() {
+  const selP = document.getElementById('c-paciente');
+  selP.innerHTML = state.pacientes.length
+    ? state.pacientes.map(p => `<option value="${p.id}">${p.nombre} (${p.documento})</option>`).join('')
+    : '<option value="">— Sin pacientes —</option>';
+
+  const selE = document.getElementById('c-especialidad');
+  selE.innerHTML = state.especialidades.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+  filtrarMedicos();
+}
+
+function filtrarMedicos() {
+  const idE = parseInt(document.getElementById('c-especialidad').value);
+  const disponibles = state.medicos.filter(m => m.especialidadId === idE);
+  const selM = document.getElementById('c-medico');
+  selM.innerHTML = disponibles.length
+    ? disponibles.map(m => `<option value="${m.id}">Dr(a). ${m.nombre}</option>`).join('')
+    : '<option value="">— Sin médicos —</option>';
+}
+
+function asignarCita() {
+  const idP  = parseInt(document.getElementById('c-paciente').value);
+  const idE  = parseInt(document.getElementById('c-especialidad').value);
+  const idM  = parseInt(document.getElementById('c-medico').value);
+  const fecha = document.getElementById('c-fecha').value;
+
+  if (!idP || !idM || !fecha) return showAlert('alert-cita','Completa todos los campos.','error');
+
+  const pac = getPac(idP), med = getMed(idM), esp = getEsp(idE);
+  if (!pac || !med) return showAlert('alert-cita','Paciente o médico no encontrado.','error');
+
+  const [y,m,d] = fecha.split('-');
+  const fechaStr = `${d}/${m}/${y}`;
+
+  const c = { id: state.contadores.citas++, pacienteId: idP, medicoId: idM, fecha: fechaStr, estado: 'Activa' };
+  state.citas.push(c);
+  showAlert('alert-cita',
+    `Cita #${c.id} asignada: ${pac.nombre} con Dr(a). ${med.nombre} el ${fechaStr}.`, 'success');
+  document.getElementById('c-fecha').value = '';
+  updateStats();
+}
+
+// ── HISTORIAL ──
+function rellenarSelectHistorial() {
+  const sel = document.getElementById('h-paciente');
+  sel.innerHTML = state.pacientes.length
+    ? '<option value="">— Selecciona paciente —</option>' +
+      state.pacientes.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+    : '<option value="">— Sin pacientes —</option>';
+  document.getElementById('card-historial').style.display = 'none';
+}
+
+function verHistorial() {
+  const idP = parseInt(document.getElementById('h-paciente').value);
+  if (!idP) { document.getElementById('card-historial').style.display = 'none'; return; }
+  const historial = state.citas.filter(c => c.pacienteId === idP);
+  const tbody = document.getElementById('tbody-historial');
+  document.getElementById('card-historial').style.display = 'block';
+
+  if (!historial.length) { tbody.innerHTML = emptyRow(5,'Este paciente no tiene citas.'); return; }
+  tbody.innerHTML = historial.map(c => {
+    const med = getMed(c.medicoId), esp = getEsp(med.especialidadId);
+    return `<tr><td>${c.id}</td><td>Dr(a). ${med.nombre}</td><td>${esp.nombre}</td><td>${c.fecha}</td><td>${badgeEstado(c.estado)}</td></tr>`;
+  }).join('');
+}
+
+// ── TODAS LAS CITAS ──
+function renderTodasCitas() {
+  const tbody = document.getElementById('tbody-todas');
+  if (!state.citas.length) { tbody.innerHTML = emptyRow(7,'No hay citas registradas.'); return; }
+  tbody.innerHTML = state.citas.map(c => {
+    const pac = getPac(c.pacienteId), med = getMed(c.medicoId), esp = getEsp(med.especialidadId);
+    const acciones = c.estado !== 'Cancelada'
+      ? `<div style="display:flex;gap:6px;">
+          <button class="btn btn-danger btn-sm" onclick="cancelarCita(${c.id})">✕ Cancelar</button>
+          <button class="btn btn-warning btn-sm" onclick="abrirReprogramar(${c.id})">↺ Reprogramar</button>
+        </div>`
+      : `<span style="color:var(--text-muted);font-size:0.78rem">—</span>`;
+    return `<tr>
+      <td>${c.id}</td>
+      <td>${pac.nombre}</td>
+      <td>Dr(a). ${med.nombre}</td>
+      <td>${esp.nombre}</td>
+      <td>${c.fecha}</td>
+      <td>${badgeEstado(c.estado)}</td>
+      <td>${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+function cancelarCita(id) {
+  const c = state.citas.find(x => x.id === id);
+  if (!c || c.estado === 'Cancelada') return;
+  c.estado = 'Cancelada';
+  renderTodasCitas(); updateStats();
+}
+
+function abrirReprogramar(id) {
+  state.citaSeleccionada = id;
+  const c = state.citas.find(x => x.id === id);
+  const pac = getPac(c.pacienteId), med = getMed(c.medicoId);
+  document.getElementById('modal-cita-info').textContent =
+    `Cita #${c.id} — ${pac.nombre} con Dr(a). ${med.nombre} (actual: ${c.fecha})`;
+  document.getElementById('modal-nueva-fecha').value = '';
+  document.getElementById('modal-reprogram').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-reprogram').classList.remove('open');
+}
+
+function confirmarReprogramar() {
+  const fecha = document.getElementById('modal-nueva-fecha').value;
+  if (!fecha) return;
+  const c = state.citas.find(x => x.id === state.citaSeleccionada);
+  const [y,m,d] = fecha.split('-');
+  c.fecha = `${d}/${m}/${y}`;
+  c.estado = 'Reprogramada';
+  cerrarModal();
+  renderTodasCitas(); updateStats();
+}
+
+// ── MÉDICOS ──
+function renderMedicos() {
+  const tbody = document.getElementById('tbody-medicos');
+  tbody.innerHTML = state.medicos.map(m => {
+    const esp = getEsp(m.especialidadId);
+    return `<tr><td>${m.id}</td><td>Dr(a). ${m.nombre}</td><td>${esp.nombre}</td><td style="color:var(--text-dim);font-size:0.82rem">${esp.descripcion}</td></tr>`;
+  }).join('');
+}
+
+// ── INIT ──
+renderPacientes();
+renderMedicos();
+updateStats();
+</script>
+</body>
+</html>
