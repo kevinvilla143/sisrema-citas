@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Citas Médicas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <!-- CSS externo desde la carpeta static -->
+    <link rel="stylesheet" href="/static/estetica.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+    <div class="logo">
+        <div class="logo-icon">🏥</div>
+        MediCitas
+    </div>
+</header>
+
+<!-- ── CONTENIDO PRINCIPAL ── -->
+<div class="container">
+
+    <div class="page-title">Gestión de Citas Médicas</div>
+    <div class="page-subtitle">Administra pacientes, médicos y citas en un solo lugar.</div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="stats-grid">
+        <div class="stat-card s1">
+            <div class="stat-label">Pacientes</div>
+            <div class="stat-value" id="stat-pacientes">0</div>
+        </div>
+        <div class="stat-card s2">
+            <div class="stat-label">Citas activas</div>
+            <div class="stat-value" id="stat-activas">0</div>
+        </div>
+        <div class="stat-card s3">
+            <div class="stat-label">Total citas</div>
+            <div class="stat-value" id="stat-total">0</div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('pacientes', event)">👤 Pacientes</button>
+        <button class="tab-btn" onclick="switchTab('citas', event)">📅 Asignar Cita</button>
+        <button class="tab-btn" onclick="switchTab('historial', event)">📋 Historial</button>
+        <button class="tab-btn" onclick="switchTab('todas', event)">🗂 Todas las Citas</button>
+        <button class="tab-btn" onclick="switchTab('medicos', event)">🩺 Médicos</button>
+    </div>
+
+    <!-- ── PANEL: PACIENTES ── -->
+    <div class="panel active" id="panel-pacientes">
+        <div class="card">
+            <div class="card-title"><span class="icon">👤</span> Registrar Nuevo Paciente</div>
+            <div id="alert-paciente" class="alert"></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="p-nombre" placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label>Número de Documento</label>
+                    <input type="text" id="p-documento" placeholder="CC / TI / Pasaporte">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="p-telefono" placeholder="300 000 0000">
+                </div>
+            </div>
+            <br>
+            <button class="btn btn-primary" onclick="registrarPaciente()">➕ Registrar Paciente</button>
+        </div>
+        <div class="card">
+            <div class="card-title"><span class="icon">📋</span> Pacientes Registrados</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Documento</th><th>Teléfono</th></tr></thead>
+                    <tbody id="tbody-pacientes"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PANEL: ASIGNAR CITA ── -->
+    <div class="panel" id="panel-citas">
+        <div class="card">
+            <div class="card-title"><span class="icon">📅</span> Asignar Nueva Cita</div>
+            <div id="alert-cita" class="alert"></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Paciente</label>
+                    <select id="c-paciente"></select>
+                </div>
+                <div class="form-group">
+                    <label>Especialidad</label>
+                    <select id="c-especialidad" onchange="filtrarMedicos()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Médico</label>
+                    <select id="c-medico"></select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de la Cita</label>
+                    <input type="date" id="c-fecha">
+                </div>
+            </div>
+            <br>
+            <button class="btn btn-primary" onclick="asignarCita()">📅 Asignar Cita</button>
+        </div>
+    </div>
+
+    <!-- ── PANEL: HISTORIAL ── -->
+    <div class="panel" id="panel-historial">
+        <div class="card">
+            <div class="card-title"><span class="icon">🔍</span> Buscar Historial de Paciente</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Seleccionar Paciente</label>
+                    <select id="h-paciente" onchange="verHistorial()"></select>
+                </div>
+            </div>
+        </div>
+        <div class="card" id="card-historial" style="display:none">
+            <div class="card-title"><span class="icon">📋</span> Citas del Paciente</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ID</th><th>Médico</th><th>Especialidad</th><th>Fecha</th><th>Estado</th></tr></thead>
+                    <tbody id="tbody-historial"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PANEL: TODAS LAS CITAS ── -->
+    <div class="panel" id="panel-todas">
+        <div class="card">
+            <div class="card-title"><span class="icon">🗂</span> Todas las Citas</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ID</th><th>Paciente</th><th>Médico</th><th>Especialidad</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="tbody-todas"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PANEL: MÉDICOS ── -->
+    <div class="panel" id="panel-medicos">
+        <div class="card">
+            <div class="card-title"><span class="icon">🩺</span> Médicos Disponibles</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Especialidad</th><th>Descripción</th></tr></thead>
+                    <tbody id="tbody-medicos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── MODAL REPROGRAMAR ── -->
+<div class="modal-overlay" id="modal-reprogram">
+    <div class="modal">
+        <div class="modal-title">📅 Reprogramar Cita</div>
+        <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:16px;" id="modal-cita-info"></p>
+        <div class="form-group">
+            <label>Nueva Fecha</label>
+            <input type="date" id="modal-nueva-fecha">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger btn-sm" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn btn-primary btn-sm" onclick="confirmarReprogramar()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- JS externo desde la carpeta static -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>
